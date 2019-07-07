@@ -1,0 +1,11 @@
+#The name of the service, used for directory names & pid files
+PROG="fle-service"
+
+#The user the service runs as
+APP_USER="fle-service"
+
+#The shaded jar produced to run the service, must contain configs in /src/main/resources/conf/{env}.yml
+JAR_NAME="fle-service.jar"
+
+#JVM Opts to include when running the service
+JVM_OPTS="-server -Xms6g -Xmx6g"

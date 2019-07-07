@@ -1,0 +1,69 @@
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081
+  requestLog:
+    appenders:
+      - type: file
+        logFormat: null
+        currentLogFilename: /var/log/rtr/erp/requests.log
+        archive: true
+        archivedLogFilenamePattern: /var/log/rtr/erp/requests-%d.log.gz
+        archivedFileCount: 14
+
+logging:
+  level: INFO
+  appenders:
+    - type: console
+      logFormat: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %msg %n"
+  loggers:
+    org.eclipse.jetty: ERROR
+    org.hibernate: ERROR
+    com.rtr: INFO
+    com.johnhite: INFO
+    com.codahale.metrics.graphite: ERROR
+    org.mongodb.morphia: ERROR
+    org.mongodb.driver: ERROR
+    net.snowflake.client: ERROR
+    logFormat: "%-5level %d{HH:mm:ss.SSS} [%t] %logger{5} - %msg %n"
+
+database:
+  driverClass: com.johnhite.sandbox.fle.db.proxy.FLEDriverProxy
+  user: fle
+  password: password
+  url: jdbc:mysql://localhost/fledb?autoReconnect=true&useTimezone=true&serverTimezone=GMT
+  properties:
+    hibernate.dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+    driver: com.mysql.jdbc.Driver
+  checkConnectionWhileIdle: true
+  checkConnectionOnBorrow: true
+  minSize: 1
+  maxSize: 100
+  initialSize: 1
+  maxWaitForConnection: 2s
+  evictionInterval: 5s
+  validationInterval: 10s
+  minIdleTime: 30s
+  useFairQueue: true
+  validationQueryTimeout: 1s
+  validationQuery: "/* Erp Validation Query */ SELECT 1"
+  initializationQuery: "SET NAMES utf8mb4"
+
+graphite:
+  server: carbon.hostedgraphite.com:2003
+  enabled: false
+  reportInterval: 60s
+  prefixStart: 15ca61f3-9a41-4231-a245-b4f8f077563e.appserver
+  componentName: erp-server
+
+smtp-logger:
+  enabled: false
+  server: 127.0.0.1:25
+  sender: erp@renttherunway.com
+  recipients: finops@renttherunway.com
+  subject: "%X{hostname} [%level, %X{env}, %X{code}] \"%msg\""
+  body: "%X{context}%n%n"
+  threshold: ERROR
