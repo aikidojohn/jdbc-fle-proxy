@@ -20,6 +20,7 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class FLEStatementProxy {
 
@@ -80,12 +81,12 @@ public class FLEStatementProxy {
                 }
                 int columnNumber = (int)args[0];
                 String column = params.get(columnNumber);
-                FieldConf fieldConf = EncryptionConf.getInstance().getField(table + "." + column);
-                if (fieldConf != null) {
+                Optional<FieldConf> fieldConf = EncryptionConf.getInstance().getField(table, column);
+                if (fieldConf.isPresent()) {
                     SecretKey key = KeyManager.getInstance().getCurrentKey();
-                    byte[] encrypted = EncryptionManager.getEncryption(fieldConf.getFormat(), byte[].class)
+                    byte[] encrypted = EncryptionManager.getEncryption(fieldConf.get().getFormat(), byte[].class)
                             .encrypt(key, column.getBytes(), (byte[])args[1]);
-                    return method.invoke(statement, new Object[]{args[0], encrypted});
+                    return method.invoke(statement, new Object[]{columnNumber, encrypted});
                 }
             }
             else if (method.getName().equals("setString")) {
@@ -94,10 +95,10 @@ public class FLEStatementProxy {
                 }
                 int columnNumber = (int)args[0];
                 String column = params.get(columnNumber);
-                FieldConf fieldConf = EncryptionConf.getInstance().getField(table + "." + column);
-                if (fieldConf != null) {
+                Optional<FieldConf> fieldConf = EncryptionConf.getInstance().getField(table, column);
+                if (fieldConf.isPresent()) {
                     SecretKey key = KeyManager.getInstance().getCurrentKey();
-                    String encrypted = EncryptionManager.getEncryption(fieldConf.getFormat(), String.class)
+                    String encrypted = EncryptionManager.getEncryption(fieldConf.get().getFormat(), String.class)
                             .encrypt(key, column.getBytes(), (String)args[1]);
                     return method.invoke(statement, new Object[]{columnNumber, encrypted});
                 }
@@ -170,8 +171,8 @@ public class FLEStatementProxy {
                 return method.invoke(rs, args);
             }
             String column = labelTable.get(args[0]); //TODO Fix for integer argument
-            FieldConf fieldConf = EncryptionConf.getInstance().getField(table + "." + column);
-            if (fieldConf == null) {
+            Optional<FieldConf> fieldConf = EncryptionConf.getInstance().getField(table, column);
+            if (!fieldConf.isPresent()) {
                 return method.invoke(rs, args);
             }
 
@@ -180,7 +181,7 @@ public class FLEStatementProxy {
                 byte[] encrypted = (byte[])method.invoke(rs, args);
 
                 SecretKey key = KeyManager.getInstance().getCurrentKey();
-                byte[] decrypted = EncryptionManager.getEncryption(fieldConf.getFormat(), byte[].class)
+                byte[] decrypted = EncryptionManager.getEncryption(fieldConf.get().getFormat(), byte[].class)
                         .decrypt(key, column.getBytes(), encrypted);
                 return decrypted;
             }
@@ -189,7 +190,7 @@ public class FLEStatementProxy {
                 String encrypted = (String)method.invoke(rs, args);
 
                 SecretKey key = KeyManager.getInstance().getCurrentKey();
-                String decrypted = EncryptionManager.getEncryption(fieldConf.getFormat(), String.class)
+                String decrypted = EncryptionManager.getEncryption(fieldConf.get().getFormat(), String.class)
                         .decrypt(key, column.getBytes(), encrypted);
                 return decrypted;
             }
@@ -198,7 +199,7 @@ public class FLEStatementProxy {
                 BigInteger encrypted = (BigInteger)method.invoke(rs, args);
 
                 SecretKey key = KeyManager.getInstance().getCurrentKey();
-                BigInteger decrypted = EncryptionManager.getEncryption(fieldConf.getFormat(), BigInteger.class)
+                BigInteger decrypted = EncryptionManager.getEncryption(fieldConf.get().getFormat(), BigInteger.class)
                         .decrypt(key, column.getBytes(), encrypted);
                 return decrypted;
             }

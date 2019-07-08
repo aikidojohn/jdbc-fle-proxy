@@ -14,6 +14,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Optional;
 
 public class KeyManager {
     private KeyDao keyDao;
@@ -60,6 +61,10 @@ public class KeyManager {
         }
 
         return new SecretKeySpec(uk.getKey(), "AES");
+    }
+
+    public Optional<SecretKey> getKey(String table, String column) {
+        return Optional.empty();
     }
 
     private IvParameterSpec generateIv(long id) throws NoSuchAlgorithmException {

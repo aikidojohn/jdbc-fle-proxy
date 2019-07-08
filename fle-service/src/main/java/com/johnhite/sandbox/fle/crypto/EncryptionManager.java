@@ -185,5 +185,9 @@ public class EncryptionManager {
         enc = new TextEncryption().encrypt(key, tweak, "John! was here?");
         System.out.println(enc);
         System.out.println(new TextEncryption().decrypt(key, tweak, enc));
+
+        enc = new FixedWidthNumberEncryption().encrypt(key, tweak, "2019208170");
+        System.out.println(enc);
+        System.out.println(new FixedWidthNumberEncryption().decrypt(key, tweak, enc));
     }
 }

@@ -8,6 +8,7 @@ import com.google.inject.Injector;
 import com.johnhite.sandbox.fle.crypto.KeyManager;
 import com.johnhite.sandbox.fle.db.proxy.EncryptionConf;
 import com.johnhite.sandbox.fle.db.proxy.FieldConf;
+import com.johnhite.sandbox.fle.db.proxy.TableConf;
 import com.johnhite.sandbox.fle.hibernate.UserEncEntity;
 import com.johnhite.sandbox.fle.hibernate.UserEntity;
 import com.johnhite.sandbox.fle.hibernate.KeyEntity;
@@ -55,12 +56,14 @@ public class FleApplication extends Application<FleConfiguration> {
         final KeyManager km = injector.getInstance(KeyManager.class);
         KeyManager.setInstance(km);
 
-        EncryptionConf.getInstance().addField(new FieldConf("users.mail", FieldConf.FieldFormat.EMAIL));
-        EncryptionConf.getInstance().addField(new FieldConf("users.first_name", FieldConf.FieldFormat.ENGLISH_NAME));
-        EncryptionConf.getInstance().addField(new FieldConf("users.last_name", FieldConf.FieldFormat.ENGLISH_NAME));
-        EncryptionConf.getInstance().addField(new FieldConf("users.address1", FieldConf.FieldFormat.ENGLISH_TEXT));
-        EncryptionConf.getInstance().addField(new FieldConf("users.address2", FieldConf.FieldFormat.ENGLISH_TEXT));
-        EncryptionConf.getInstance().addField(new FieldConf("users.phone_number", FieldConf.FieldFormat.NUMBER_FIXED_WIDTH));
+        TableConf usersTable = new TableConf("users", "id,mail", "id,hash(mail)");
+        EncryptionConf.getInstance().addTable(usersTable);
+        usersTable.addField(new FieldConf("users.mail", FieldConf.FieldFormat.EMAIL));
+        usersTable.addField(new FieldConf("users.first_name", FieldConf.FieldFormat.ENGLISH_NAME));
+        usersTable.addField(new FieldConf("users.last_name", FieldConf.FieldFormat.ENGLISH_NAME));
+        usersTable.addField(new FieldConf("users.address1", FieldConf.FieldFormat.ENGLISH_TEXT));
+        usersTable.addField(new FieldConf("users.address2", FieldConf.FieldFormat.ENGLISH_TEXT));
+        usersTable.addField(new FieldConf("users.phone_number", FieldConf.FieldFormat.NUMBER_FIXED_WIDTH));
 
         for (Class<?> resource : RESOURCES) {
             environment.jersey().register(injector.getInstance(resource));
