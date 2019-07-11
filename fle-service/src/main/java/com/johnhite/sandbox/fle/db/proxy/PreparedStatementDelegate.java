@@ -1,5 +1,11 @@
 package com.johnhite.sandbox.fle.db.proxy;
 
+import com.johnhite.sandbox.fle.crypto.Encryption;
+import com.johnhite.sandbox.fle.crypto.EncryptionManager;
+import com.johnhite.sandbox.fle.crypto.KeyManager;
+
+import javax.crypto.SecretKey;
+import javax.swing.text.Keymap;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -21,19 +27,104 @@ import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class PreparedStatementDelegate extends StatementDelegate implements PreparedStatement {
     private final PreparedStatement wrapped;
-    public PreparedStatementDelegate(PreparedStatement wrapped) {
+    private List<EncryptionCommand> encryptionCommands = new LinkedList<>();
+    private Map<Integer, String> params = new HashMap<>();
+    private String query;
+    private String tableName;
+    private SecretKey currentKey;
+    private long currentKeyId = -1;
+    private Set<String> idColumnsSet = new HashSet<>();
+
+    public PreparedStatementDelegate(PreparedStatement wrapped, String query) {
         super(wrapped);
         this.wrapped = wrapped;
+        this.query = query;
+        extractParameterNames();
     }
+
+    private void extractParameterNames() {
+        if (query == null) {
+            return;
+        }
+        String querylc = query.toLowerCase();
+        int insertIdx = querylc.indexOf("insert into");
+        if (insertIdx < 0) {
+            return;
+        }
+
+        String[] p = query.substring(insertIdx).split(" ");
+        tableName = p[2];
+        int parenIdx = query.indexOf('(', insertIdx);
+        int thesisIdx = query.indexOf(')', parenIdx);
+        String[] parts = query.substring(parenIdx+1, thesisIdx).split(",");
+        for (int i=0; i < parts.length; i++) {
+            params.put(i+1, parts[i].trim());
+        }
+    }
+
     @Override public ResultSet executeQuery() throws SQLException {
-        return wrapped.executeQuery();
+        ResultSet rs = wrapped.executeQuery();
+        return new ResultSetDelegate(rs);
     }
 
     @Override public int executeUpdate() throws SQLException {
-        return wrapped.executeUpdate();
+        if (currentKey == null) {
+            Optional<TableConf> conf =  EncryptionConf.getInstance().getTable(tableName);
+            if (conf.isPresent()) {
+                currentKey = KeyManager.getInstance().generateTransientKey();
+                currentKeyId = KeyManager.getInstance().persistKey(currentKey);
+                String column = null;
+                for (String c : conf.get().getKeyIdAttrs().keySet()) {
+                    if (!idColumnsSet.contains(c)) {
+                        column = c;
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (EncryptionCommand com : encryptionCommands) {
+            try {
+                com.encrypt(currentKey);
+            } catch (SQLException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new SQLException(e);
+            }
+        }
+        int updated = wrapped.executeUpdate();
+
+        //persist generated id if needed
+        Optional<TableConf> conf =  EncryptionConf.getInstance().getTable(tableName);
+        if (conf.isPresent()) {
+            if (idColumnsSet.size() != conf.get().getKeyIdAttrs().size()) {
+                ResultSet rs = wrapped.getGeneratedKeys();
+                if (rs.next()) {
+                    long id = rs.getLong(1);
+                    String col = null;
+                    for (String c : conf.get().getKeyIdAttrs().keySet()) {
+                        if (!idColumnsSet.contains(c)) {
+                            col = c;
+                            break;
+                        }
+                    }
+                    KeyManager.getInstance().persistKeyMapping(currentKeyId, id, conf.get().getKeyIdAttrs().get(col));
+                } else {
+                    System.out.println("couldn't find generated id");
+                }
+            }
+        }
+        return updated;
     }
 
     @Override public void setNull(int parameterIndex, int sqlType) throws SQLException {
@@ -72,7 +163,60 @@ public class PreparedStatementDelegate extends StatementDelegate implements Prep
         wrapped.setBigDecimal(parameterIndex, x);
     }
 
-    @Override public void setString(int parameterIndex, String x) throws SQLException {
+    private void lookupKeyForField(int parameterIndex) {
+        final String column = params.get(parameterIndex);
+
+        //Is column a key identifier?
+        Optional<TableConf> t = EncryptionConf.getInstance().getTable(tableName);
+        if (t.isPresent()) {
+            final String idName = t.get().getKeyIdAttrs().get(column);
+            if (idName != null) {
+                //This is an ID Field - try to find a key.
+                Optional<SecretKey> key = KeyManager.getInstance().getKeyByUserAttribute(column, idName);
+                if (currentKey == null && key.isPresent()) {
+                    currentKey = key.get();
+                } else if (currentKey == null) {
+                    //generate key;
+                    currentKey = KeyManager.getInstance().generateTransientKey();
+                    currentKeyId = KeyManager.getInstance().persistKey(currentKey);
+                    idColumnsSet.add(column);
+                    EncryptionCommand command = (sk) -> {
+                        KeyManager.getInstance().persistKeyMapping(currentKeyId, column, idName);
+                    };
+                    encryptionCommands.add(command);
+                } else if (currentKeyId > 0) {
+                    idColumnsSet.add(column);
+                    EncryptionCommand command = (sk) -> {
+                        KeyManager.getInstance().persistKeyMapping(currentKeyId, column, idName);
+                    };
+                    encryptionCommands.add(command);
+                }
+            }
+        }
+    }
+
+    @Override public void setString(int parameterIndex, final String x) throws SQLException {
+        if (params.isEmpty()) {
+            wrapped.setString(parameterIndex, x);
+            return;
+        }
+
+        //Is column a key identifier?
+        lookupKeyForField(parameterIndex);
+
+        //Should Field be encrypted?
+        final String column = params.get(parameterIndex);
+        final Optional<FieldConf> fieldConf = EncryptionConf.getInstance().getField(tableName, column);
+        if (fieldConf.isPresent()) {
+            //wrap in a command to encrypt later.
+            EncryptionCommand command = (sk) -> {
+                String encrypted = EncryptionManager.getEncryption(fieldConf.get().getFormat(), String.class)
+                        .encrypt(sk, new byte[]{1}, x);
+                wrapped.setString(parameterIndex, encrypted);
+            };
+            encryptionCommands.add(command);
+            return;
+        }
         wrapped.setString(parameterIndex, x);
     }
 

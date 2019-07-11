@@ -5,9 +5,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StatementDelegate implements Statement {
     private final Statement wrapped;
+
     public StatementDelegate(Statement wrapped) {
         this.wrapped = wrapped;
     }

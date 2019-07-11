@@ -44,10 +44,10 @@ public class UserResource {
     @GET
     @UnitOfWork(readOnly = true)
     public Response getById(@PathParam("id") long id) {
-        UserKeyEntity uke = userKeyDao.findByUserId(id);
+        /*UserKeyEntity uke = userKeyDao.findByUserId(id);
         if (uke != null) {
             KeyManager.getInstance().setCurrentKeyId(uke.getKey());
-        }
+        }*/
         return Response.ok(userDao.findById(id)).build();
     }
 
@@ -55,7 +55,7 @@ public class UserResource {
     @UnitOfWork
     public Response createUser( UserEntity user) {
         UserEntity resp = null;
-        UserKeyEntity uke = userKeyDao.findByEmail(user.getMail());
+       /* UserKeyEntity uke = userKeyDao.findByEmail(user.getMail());
         if (uke != null) {
             KeyManager.getInstance().setCurrentKeyId(uke.getKey());
             resp = userDao.persist(user);
@@ -66,9 +66,9 @@ public class UserResource {
             resp = userDao.persist(user);
             uke = new UserKeyEntity(resp.getId(), userKeyDao.createEmailId(user.getMail()), keyId);
             userKeyDao.persist(uke);
-        }
+        }*/
 
-
+        resp = userDao.persist(user);
         return Response.ok(resp).build();
     }
 

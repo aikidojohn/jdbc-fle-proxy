@@ -29,7 +29,8 @@ public class FLEStatementProxy {
     }
 
     public static PreparedStatement wrap(PreparedStatement s, String query) {
-        return (PreparedStatement) Proxy.newProxyInstance(FLEStatementProxy.class.getClassLoader(), new Class[] {PreparedStatement.class}, new FLEPreparedStatementProxyImpl(s, query));
+        return new PreparedStatementDelegate(s, query);
+        //return (PreparedStatement) Proxy.newProxyInstance(FLEStatementProxy.class.getClassLoader(), new Class[] {PreparedStatement.class}, new FLEPreparedStatementProxyImpl(s, query));
     }
 
     public static ResultSet wrap(ResultSet r) {

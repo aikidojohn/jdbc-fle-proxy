@@ -8,7 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="enc_keys")
+@Table(name="data_keys")
 public class KeyEntity {
     @Id
     @Column(name = "id", unique = true, nullable=false, insertable = true, updatable = false)

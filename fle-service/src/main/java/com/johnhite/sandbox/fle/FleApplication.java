@@ -56,7 +56,7 @@ public class FleApplication extends Application<FleConfiguration> {
         final KeyManager km = injector.getInstance(KeyManager.class);
         KeyManager.setInstance(km);
 
-        TableConf usersTable = new TableConf("users", "id,mail", "id,hash(mail)");
+        TableConf usersTable = new TableConf("users", "id", "user.id");
         EncryptionConf.getInstance().addTable(usersTable);
         usersTable.addField(new FieldConf("users.mail", FieldConf.FieldFormat.EMAIL));
         usersTable.addField(new FieldConf("users.first_name", FieldConf.FieldFormat.ENGLISH_NAME));

@@ -1,8 +1,14 @@
 package com.johnhite.sandbox.fle.db.proxy;
 
+import com.johnhite.sandbox.fle.crypto.Encryption;
+import com.johnhite.sandbox.fle.crypto.EncryptionManager;
+import com.johnhite.sandbox.fle.crypto.KeyManager;
+
+import javax.crypto.SecretKey;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
@@ -20,16 +26,78 @@ import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class ResultSetDelegate implements ResultSet {
     private final ResultSet wrapped;
-    
+    private ResultSetMetaData md;
+    private Map<String, String> labelTable = new HashMap<>();
+    private Map<String, Integer> indexTable = new HashMap<>();
+    private Map<String, SecretKey> keyTable = new HashMap<>();
+
     public ResultSetDelegate(ResultSet rs) {
         wrapped = rs;
+        try {
+            md = rs.getMetaData();
+            int count = md.getColumnCount();
+            for (int i = 1; i <= count; i++) {
+                labelTable.put(md.getColumnLabel(i), md.getColumnName(i));
+                indexTable.put(md.getColumnLabel(i), i);
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
     }
+
+    private Optional<SecretKey> findKey(String table) throws SQLException {
+        if (keyTable.containsKey(table)) {
+            return Optional.of(keyTable.get(table));
+        }
+        Optional<TableConf> tableConf = EncryptionConf.getInstance().getTable(table);
+        if (!tableConf.isPresent()) {
+            return Optional.empty();
+        }
+        Set<String> keyColumns =  tableConf.get().getKeyIdAttrs().keySet();
+        String column = null;
+        String columnLabel = null;
+        for (Map.Entry<String, String> entry : labelTable.entrySet()) {
+            if (keyColumns.contains(entry.getValue())) {
+                //if we need to decrypt it, we can't yet because we don't have a key so skip it
+                Optional<FieldConf> fieldConf = tableConf.get().getField(entry.getValue());
+                if (!fieldConf.isPresent()) {
+                    column = entry.getValue();
+                    columnLabel = entry.getKey();
+                    break;
+                }
+            }
+        }
+
+        if (column == null) {
+            return Optional.empty();
+        }
+
+        int type = md.getColumnType(indexTable.get(columnLabel));
+        switch (type) {
+            case Types.INTEGER:
+                long id = wrapped.getLong(columnLabel);
+                Optional<SecretKey> key = KeyManager.getInstance().getKeyByUserAttribute(id, tableConf.get().getKeyIdAttrs().get(column));
+                if (key.isPresent()) {
+                    keyTable.put(table, key.get());
+                    return key;
+                }
+            default:
+                break;
+        }
+        return Optional.empty();
+    }
+
     @Override public boolean next() throws SQLException {
+        keyTable.clear();
         return wrapped.next();
     }
 
@@ -106,6 +174,17 @@ public class ResultSetDelegate implements ResultSet {
     }
 
     @Override public String getString(String columnLabel) throws SQLException {
+        final String column = labelTable.get(columnLabel);
+        final String table = md.getTableName(indexTable.get(columnLabel));
+        Optional<FieldConf> fieldConf = EncryptionConf.getInstance().getField(table, column);
+        if (fieldConf.isPresent()) {
+            Optional<SecretKey> key = findKey(table);
+            if (key.isPresent()) {
+                String ciphertext = wrapped.getString(columnLabel);
+                String plaintext = EncryptionManager.getEncryption(fieldConf.get().getFormat(), String.class).decrypt(key.get(), new byte[] { 1 }, ciphertext);
+                return plaintext;
+            }
+        }
         return wrapped.getString(columnLabel);
     }
 
@@ -126,6 +205,17 @@ public class ResultSetDelegate implements ResultSet {
     }
 
     @Override public long getLong(String columnLabel) throws SQLException {
+        final String column = labelTable.get(columnLabel);
+        final String table = md.getTableName(indexTable.get(columnLabel));
+        Optional<FieldConf> fieldConf = EncryptionConf.getInstance().getField(table, column);
+        if (fieldConf.isPresent()) {
+            Optional<SecretKey> key = findKey(table);
+            if (key.isPresent()) {
+                long ciphertext = wrapped.getLong(columnLabel);
+                BigInteger plaintext = EncryptionManager.getEncryption(fieldConf.get().getFormat(), BigInteger.class).decrypt(key.get(), new byte[] { 1 }, BigInteger.valueOf(ciphertext));
+                return plaintext.longValue();
+            }
+        }
         return wrapped.getLong(columnLabel);
     }
 
