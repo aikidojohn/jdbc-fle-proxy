@@ -26,7 +26,7 @@ public class FleApplication extends Application<FleConfiguration> {
     private static Class<?>[] RESOURCES = {
             UserResource.class
     };
-    private final HibernateBundle<FleConfiguration> hibernate = new HibernateBundle<FleConfiguration>(UserEntity.class, UserEncEntity.class, KeyEntity.class, UserKeyEntity.class) {
+    private final HibernateBundle<FleConfiguration> hibernate = new HibernateBundle<FleConfiguration>(UserEntity.class, KeyEntity.class, UserKeyEntity.class) {
         @Override
         public DataSourceFactory getDataSourceFactory(FleConfiguration configuration) {
             return configuration.getDatabase();
@@ -56,14 +56,8 @@ public class FleApplication extends Application<FleConfiguration> {
         final KeyManager km = injector.getInstance(KeyManager.class);
         KeyManager.setInstance(km);
 
-        TableConf usersTable = new TableConf("users", "id", "user.id");
-        EncryptionConf.getInstance().addTable(usersTable);
-        usersTable.addField(new FieldConf("users.mail", FieldConf.FieldFormat.EMAIL));
-        usersTable.addField(new FieldConf("users.first_name", FieldConf.FieldFormat.ENGLISH_NAME));
-        usersTable.addField(new FieldConf("users.last_name", FieldConf.FieldFormat.ENGLISH_NAME));
-        usersTable.addField(new FieldConf("users.address1", FieldConf.FieldFormat.ENGLISH_TEXT));
-        usersTable.addField(new FieldConf("users.address2", FieldConf.FieldFormat.ENGLISH_TEXT));
-        usersTable.addField(new FieldConf("users.phone_number", FieldConf.FieldFormat.NUMBER_FIXED_WIDTH));
+        configuration.getFieldLevelEncryption().createEncryptionConf();
+
 
         for (Class<?> resource : RESOURCES) {
             environment.jersey().register(injector.getInstance(resource));
