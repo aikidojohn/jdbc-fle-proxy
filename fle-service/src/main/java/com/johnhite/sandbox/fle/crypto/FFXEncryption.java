@@ -49,22 +49,6 @@ public class FFXEncryption {
         return num10(A, l) + num10(B, n-l);
     }
 
-    private static BigInteger addBlockwise(BigInteger a, BigInteger b, int l, int radix) {
-       return a.add(b).mod(BigInteger.valueOf(radix).pow(l));
-    }
-
-    private static BigInteger subBlockwise(BigInteger a, BigInteger b, int l, int radix) {
-        BigInteger mod = BigInteger.valueOf(radix).pow(l);
-        BigInteger tmp = a.subtract(b).mod(mod);
-        return tmp;
-    }
-
-    private static int rnds(int n) {
-        if (n >= 10) return 12;
-        if (n >= 6) return 18;
-        return 24;
-    }
-
     private static BigInteger F_A10(int messageLen, byte[] tweak, int round, BigInteger messageB, SecretKey key) {
         //P
         int t = tweak.length;
@@ -82,6 +66,22 @@ public class FFXEncryption {
                 ypp.mod(BigInteger.TEN.pow(m)) :
                 yp.mod(BigInteger.TEN.pow(m - 9)).multiply(BILLION).add(ypp.mod(BILLION));
         return z;
+    }
+
+    private static BigInteger addBlockwise(BigInteger a, BigInteger b, int l, int radix) {
+       return a.add(b).mod(BigInteger.valueOf(radix).pow(l));
+    }
+
+    private static BigInteger subBlockwise(BigInteger a, BigInteger b, int l, int radix) {
+        BigInteger mod = BigInteger.valueOf(radix).pow(l);
+        BigInteger tmp = a.subtract(b).mod(mod);
+        return tmp;
+    }
+
+    private static int rnds(int n) {
+        if (n >= 10) return 12;
+        if (n >= 6) return 18;
+        return 24;
     }
 
     //rough cbc-mac

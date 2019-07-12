@@ -6,13 +6,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.johnhite.sandbox.fle.crypto.KeyManager;
-import com.johnhite.sandbox.fle.db.proxy.EncryptionConf;
-import com.johnhite.sandbox.fle.db.proxy.FieldConf;
-import com.johnhite.sandbox.fle.db.proxy.TableConf;
-import com.johnhite.sandbox.fle.hibernate.UserEncEntity;
 import com.johnhite.sandbox.fle.hibernate.UserEntity;
 import com.johnhite.sandbox.fle.hibernate.KeyEntity;
 import com.johnhite.sandbox.fle.hibernate.UserKeyEntity;
+import com.johnhite.sandbox.fle.resources.KeyResource;
 import com.johnhite.sandbox.fle.resources.UserResource;
 import com.rtr.wizard.RequiredBundle;
 import io.dropwizard.Application;
@@ -24,7 +21,8 @@ import io.dropwizard.setup.Environment;
 public class FleApplication extends Application<FleConfiguration> {
 
     private static Class<?>[] RESOURCES = {
-            UserResource.class
+            UserResource.class,
+            KeyResource.class
     };
     private final HibernateBundle<FleConfiguration> hibernate = new HibernateBundle<FleConfiguration>(UserEntity.class, KeyEntity.class, UserKeyEntity.class) {
         @Override

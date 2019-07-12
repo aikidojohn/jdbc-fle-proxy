@@ -33,4 +33,8 @@ public class KeyDao extends AbstractDAO<KeyEntity> {
 
         return super.persist(entity);
     }
+
+    public void delete(KeyEntity entity) {
+        super.currentSession().delete(entity);
+    }
 }
