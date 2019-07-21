@@ -9,9 +9,9 @@ server:
     appenders:
       - type: file
         logFormat: null
-        currentLogFilename: /var/log/rtr/erp/requests.log
+        currentLogFilename: /var/log/rtr/fle/requests.log
         archive: true
-        archivedLogFilenamePattern: /var/log/rtr/erp/requests-%d.log.gz
+        archivedLogFilenamePattern: /var/log/rtr/fle/requests-%d.log.gz
         archivedFileCount: 14
 
 logging:
@@ -49,21 +49,34 @@ database:
   minIdleTime: 30s
   useFairQueue: true
   validationQueryTimeout: 1s
-  validationQuery: "/* Erp Validation Query */ SELECT 1"
+  validationQuery: "/* Validation Query */ SELECT 1"
   initializationQuery: "SET NAMES utf8mb4"
+
+field_level_encryption:
+  tables:
+    users:
+      keyIdColumn: id
+      keyIdName: user.id
+      fields:
+        mail: EMAIL
+        first_name: ENGLISH_NAME
+        last_name: ENGLISH_NAME
+        address1: ENGLISH_TEXT
+        address2: ENGLISH_TEXT
+        phone_number: NUMBER_FIXED_WIDTH
 
 graphite:
   server: carbon.hostedgraphite.com:2003
   enabled: false
   reportInterval: 60s
   prefixStart: 15ca61f3-9a41-4231-a245-b4f8f077563e.appserver
-  componentName: erp-server
+  componentName: fle-server
 
 smtp-logger:
   enabled: false
   server: 127.0.0.1:25
-  sender: erp@renttherunway.com
-  recipients: finops@renttherunway.com
+  sender: jhite@renttherunway.com
+  recipients: jhite@renttherunway.com
   subject: "%X{hostname} [%level, %X{env}, %X{code}] \"%msg\""
   body: "%X{context}%n%n"
   threshold: ERROR

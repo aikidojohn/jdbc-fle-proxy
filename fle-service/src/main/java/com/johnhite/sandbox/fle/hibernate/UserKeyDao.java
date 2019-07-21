@@ -34,4 +34,9 @@ public class UserKeyDao extends AbstractDAO<UserKeyEntity> {
 
         return super.persist(entity);
     }
+
+    public void delete(UserKeyEntity entity) {
+        super.currentSession().delete(entity);
+    }
+
 }

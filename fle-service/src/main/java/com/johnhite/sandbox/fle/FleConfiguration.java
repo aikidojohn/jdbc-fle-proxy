@@ -20,4 +20,10 @@ public class FleConfiguration extends RequiredConfiguration {
         return database;
     }
 
+    @JsonProperty("field_level_encryption")
+    private FieldLevelEncryptionConf fieldLevelEncryption = new FieldLevelEncryptionConf();
+
+    public FieldLevelEncryptionConf getFieldLevelEncryption() {
+        return fieldLevelEncryption;
+    }
 }
