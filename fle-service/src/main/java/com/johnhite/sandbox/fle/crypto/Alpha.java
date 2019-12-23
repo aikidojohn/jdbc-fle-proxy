@@ -10,6 +10,7 @@ public class Alpha {
     public static CharacterDomain ASCII_DOMAIN = new AsciiDomain();
     public static CharacterDomain ASCII_EMAIL = new AsciiEmail();
     public static CharacterDomain ASCII_NAME = new AsciiName();
+    public static CharacterDomain NUMBER = new NumberDomain();
 
     public static BigInteger toBase10(String alpha, CharacterDomain domain) {
         BigInteger radix = BigInteger.valueOf(domain.getRadix());
@@ -58,6 +59,25 @@ public class Alpha {
         int getIndex(char c);
         char getChar(int index);
         long getRadix();
+    }
+
+    private static class NumberDomain implements CharacterDomain {
+        private char[] table = "0123456789".toCharArray();
+        private Map<Character, Integer> indices = new HashMap<>();
+        public NumberDomain() {
+            for (int i =0; i< table.length; i++) {
+                indices.put(table[i], i);
+            }
+        }
+        public int getIndex(char c) {
+            return indices.get(c);
+        }
+        public char getChar(int index) {
+            return table[index];
+        }
+        public long getRadix() {
+            return table.length;
+        }
     }
 
     private static class AsciiPrintable implements CharacterDomain {

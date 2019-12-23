@@ -11,7 +11,6 @@ import com.johnhite.sandbox.fle.hibernate.KeyEntity;
 import com.johnhite.sandbox.fle.hibernate.UserKeyEntity;
 import com.johnhite.sandbox.fle.resources.KeyResource;
 import com.johnhite.sandbox.fle.resources.UserResource;
-import com.rtr.wizard.RequiredBundle;
 import io.dropwizard.Application;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.hibernate.HibernateBundle;
@@ -39,8 +38,6 @@ public class FleApplication extends Application<FleConfiguration> {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public void initialize(final Bootstrap<FleConfiguration> bootstrap) {
-        final RequiredBundle<FleConfiguration> requiredBundle = new RequiredBundle<>();
-        bootstrap.addBundle(requiredBundle);
         bootstrap.addBundle(hibernate);
     }
 

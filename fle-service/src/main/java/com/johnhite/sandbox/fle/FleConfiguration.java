@@ -5,11 +5,11 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.rtr.wizard.RequiredConfiguration;
 
+import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
 
-public class FleConfiguration extends RequiredConfiguration {
+public class FleConfiguration extends Configuration {
 
     @Valid
     @NotNull

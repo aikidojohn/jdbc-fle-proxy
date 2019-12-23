@@ -16,26 +16,26 @@
         <maven>3.0.0</maven>
     </prerequisites>
 
-    <parent>
+    <!-- parent>
         <groupId>com.rtr</groupId>
         <artifactId>dw-parent-pom</artifactId>
         <version>4.033</version>
-    </parent>
+    </parent -->
 
 
-    <repositories>
+    <!--repositories>
         <repository>
             <id>rtr-nexus-release</id>
             <name>Nexus Distribution</name>
             <url>http://nexus01.renttherunway.it/content/repositories/releases/</url>
         </repository>
-    </repositories>
+    </repositories-->
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <wizard-common.version>3.159-SNAPSHOT</wizard-common.version>
         <guice.version>4.1.0</guice.version>
+        <dropwizard.version>2.0.0</dropwizard.version>
     </properties>
 
     <dependencyManagement>
@@ -58,17 +58,11 @@
                 <version>${guice.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.rtr.wizard</groupId>
-                <artifactId>wizard-service</artifactId>
-                <version>${wizard-common.version}</version>
-            </dependency>
-
-            <dependency>
+            <!-- dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jdk8</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
+            </dependency -->
 
             <dependency>
                 <groupId>io.dropwizard</groupId>
@@ -80,20 +74,6 @@
                 <groupId>io.dropwizard</groupId>
                 <artifactId>dropwizard-views</artifactId>
                 <version>${dropwizard.version}</version>
-            </dependency>
-
-
-            <dependency>
-                <groupId>com.rtr.wizard</groupId>
-                <artifactId>wizard-client-dw11</artifactId>
-                <version>${wizard-common.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.rtr.wizard</groupId>
-                <artifactId>wizard-test</artifactId>
-                <version>${wizard-common.version}</version>
-                <scope>test</scope>
             </dependency>
 
 
@@ -110,4 +90,20 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>
