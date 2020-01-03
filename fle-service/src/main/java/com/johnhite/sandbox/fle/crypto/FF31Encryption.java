@@ -6,7 +6,10 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.security.SecureRandom;
@@ -136,6 +139,13 @@ public class FF31Encryption {
         return sb.toString();
     }
 
+    public static long minlen(Alpha.CharacterDomain domain) {
+        return MoreMath.logInt((int)domain.getRadix(), 1000000, RoundingMode.CEILING);
+    }
+    public static long maxlen(Alpha.CharacterDomain domain) {
+        BigDecimal max = MoreMath.log((int)domain.getRadix(), BigDecimal.valueOf(2).pow(96));
+        return 2L * max.toBigInteger().longValue();
+    }
     public static byte[] cipher(SecretKey key, byte[] data) {
         try {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
@@ -204,6 +214,9 @@ public class FF31Encryption {
 
 
     public static void main(String... args) throws Exception {
+        System.out.println("Range Number:    " + minlen(Alpha.NUMBER) + " - " + maxlen(Alpha.NUMBER));
+        System.out.println("Range Email:     " + minlen(Alpha.ASCII_EMAIL) + " - " + maxlen(Alpha.ASCII_EMAIL));
+        System.out.println("Range Printable: " + minlen(Alpha.ASCII_PRINTABLE) + " - " + maxlen(Alpha.ASCII_PRINTABLE));
         SecureRandom random = SecureRandom.getInstanceStrong();
         KeyGenerator keyGen = KeyGenerator.getInstance("AES");
         keyGen.init(128, random);

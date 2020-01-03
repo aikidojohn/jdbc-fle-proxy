@@ -11,6 +11,7 @@ public class Alpha {
     public static CharacterDomain ASCII_EMAIL = new AsciiEmail();
     public static CharacterDomain ASCII_NAME = new AsciiName();
     public static CharacterDomain NUMBER = new NumberDomain();
+    public static CharacterDomain BASE36 = new Base36Domain();
 
     public static BigInteger toBase10(String alpha, CharacterDomain domain) {
         BigInteger radix = BigInteger.valueOf(domain.getRadix());
@@ -65,6 +66,24 @@ public class Alpha {
         private char[] table = "0123456789".toCharArray();
         private Map<Character, Integer> indices = new HashMap<>();
         public NumberDomain() {
+            for (int i =0; i< table.length; i++) {
+                indices.put(table[i], i);
+            }
+        }
+        public int getIndex(char c) {
+            return indices.get(c);
+        }
+        public char getChar(int index) {
+            return table[index];
+        }
+        public long getRadix() {
+            return table.length;
+        }
+    }
+    private static class Base36Domain implements CharacterDomain {
+        private char[] table = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
+        private Map<Character, Integer> indices = new HashMap<>();
+        public Base36Domain() {
             for (int i =0; i< table.length; i++) {
                 indices.put(table[i], i);
             }
