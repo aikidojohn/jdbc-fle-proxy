@@ -10,6 +10,7 @@
 
     <modules>
         <module>fle-service</module>
+        <module>ffx</module>
     </modules>
 
     <prerequisites>

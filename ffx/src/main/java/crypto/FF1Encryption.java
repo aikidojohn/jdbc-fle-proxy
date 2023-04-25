@@ -1,19 +1,14 @@
-package com.johnhite.sandbox.fle.crypto;
-
-import org.checkerframework.checker.units.qual.A;
+package crypto;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.xml.bind.DatatypeConverter;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Implementation of FF1 algorithm from NIST SP 800-38G REV. 1 (DRAFT)

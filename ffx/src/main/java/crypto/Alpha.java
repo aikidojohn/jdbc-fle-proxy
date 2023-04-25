@@ -1,4 +1,4 @@
-package com.johnhite.sandbox.fle.crypto;
+package crypto;
 
 import javax.xml.bind.DatatypeConverter;
 import java.math.BigInteger;

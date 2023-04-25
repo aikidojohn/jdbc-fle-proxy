@@ -1,4 +1,4 @@
-package com.johnhite.sandbox.fle.crypto;
+package crypto;
 
 import com.google.common.io.Resources;
 import org.junit.Assert;

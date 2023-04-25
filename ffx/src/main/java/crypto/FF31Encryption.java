@@ -1,6 +1,4 @@
-package com.johnhite.sandbox.fle.crypto;
-
-import org.checkerframework.checker.units.qual.C;
+package crypto;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -8,10 +6,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
